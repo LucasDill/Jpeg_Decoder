@@ -24,7 +24,7 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 		BytesPerLine |= 0x0003;
 		++BytesPerLine;
 	}
-	head->filesize = head->headsize + (long)BytesPerLine * head->height;
+	head->filesize = head->headsize + (long(head->width)*long(head->height)*3);
 
 	cout << "\n Bytes Per Line: " << BytesPerLine<<"\n";
 	return BytesPerLine;
@@ -46,7 +46,10 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 		return 0;
 	}
 
+
 	int bytes=intializeHeader(info, Header);//get the header ready for the new image 
+	Header->ypix = 1000;
+	Header->xpix = 1000;
 	FILE* outBmp= fopen("NewBitmap.bmp", "wb");
 
 	if (!outBmp)
@@ -54,11 +57,13 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 		cout << "\nThere is an issue opening up the output file";
 		return 0;
 	}
-
+	int width = Header->width;
 	fwrite("BM", 1, 2, outBmp);//write the first lines in 
 	fwrite((char*) Header, 1, sizeof(*Header), outBmp);
+	   
+	char* lineContainer;
 
-	char* lineContainer = (char*)calloc(1, bytes);
+	 lineContainer = (char*)calloc(1, bytes);
 	if (!lineContainer)
 	{
 		cout << "\nProblem Assigning Memory for Line Container";
@@ -67,10 +72,10 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 
 	//This is where we write the data from the info to the image
 	//To get the raw image we can take the pixels from the info class 
-
-	unsigned char* img = info->pixels;
+	char* raw_image;
+	 raw_image = (char*)info->pixels;
 	//cout << Header->width;
-	int width = Header->width;
+	
 	/*cout << "\n"<< sizeof(unsigned char *);
 	cout <<"\n" <<*(img + (48576));
 	cout << "\n" <<*(img + (4 + 32 * 2) * 700 + 2);
@@ -83,14 +88,28 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	}
 	cout << "\n\n\n\n\n\n\n\n\n\n\n\n\The Final Number for a was:" << a;
 	*/
-	int bit_pix = 1;
+	int bytes_per_pixel =1;
+	
+	const int b = Header->filesize;
+	int* arr = (int*)malloc(sizeof(*arr)*(Header->filesize/3));
 
-	for (int line = Header->height-1; line>=0; line--) {
-		for (int i = 0; i < width; i++)
+	for (int l = 0; l < (Header->filesize/3); l++)
+	{
+		int greyscale = (int)raw_image[l];
+		greyscale = greyscale + 128;
+		arr[l] = greyscale;
+		cout << arr[l]<<" ";
+	}
+	cout << arr;
+
+
+	int line, x;
+	for ( line = Header->height; line>=0; line--) {
+		for ( x = 0; x < width; x++)
 		{
-			*(lineContainer + i * bit_pix) = *(img + (i + line * width) * bit_pix + 0);
-			//*(lineContainer + i * bit_pix + 1) = *(img+ (i + line *width) * bit_pix + 1);
-			//*(lineContainer + i * bit_pix + 2) = *(img + (i + line *width) * bit_pix + 2);
+			*(lineContainer + x * bytes_per_pixel) = *(raw_image + (x + line * width) * bytes_per_pixel +2);
+			*(lineContainer + x * bytes_per_pixel + 1) = *(raw_image + (x + line * width) * bytes_per_pixel + 1);
+			*(lineContainer + x * bytes_per_pixel + 2) = *(raw_image + (x + line * width) * bytes_per_pixel + 0);
 		}
 		fwrite(lineContainer, 1, bytes, outBmp);
 	}
@@ -114,14 +133,16 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	 ofstream fout("Output.bmp", ios::binary);
 		 
 	 fout.write((char *) &Mainhead, 14);
-	 fout.write((char*)& infoHead, 40);
+	 fout.write((char*) &infoHead, 40);
 	 size_t numberOfPixels = info->width * info->height;
 	
 	 cout <<"\n" <<sizeof(&info->pixels[3]);
 	 &info->pixels[3];
-
+	 cout << "\n" << sizeof(char);
+	 cout << "\n" << sizeof(char*);
 	 for (int i = 0; i < numberOfPixels; i++)
 	 {
+		 &info->pixels[i];
 		 fout.write((char*)	&info->pixels[i], sizeof(&info->pixels[i]));
 	 }
 	 fout.close();

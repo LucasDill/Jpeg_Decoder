@@ -98,8 +98,8 @@ struct BMPFileHeader {
 	short bits;
 	long Compression;
 	long ImageSize;
-	long xpix;
-	long ypix;
+	long xpix=1000;
+	long ypix=1000;
 	long clrused;
 	long Important;
 };
