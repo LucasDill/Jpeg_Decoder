@@ -7,33 +7,13 @@
 
 using namespace std;
 
-void _save_to_ppm(struct JpegInfo* j) {
-	//std::cout << "\n THERE IS NO SCAN OUT\nj: " << j->height;
-	if (j->scan) {
-		//cout << j->pixels;
-		//std::cout << "\nTHERE IS A SCAN OUT";
-		
-		FILE* fg = fopen("expo.ppm", "wb");
-		assert(fg);
-		std::cout << j;
-		fprintf(fg, "P%d\n", j->blocks_mcu <= 1 ? 5 : 6);
-		fprintf(fg, "%d %d\n255\n", j->width, j->height);
-		fwrite(j->pixels, 1, j->pixel_length, fg);
-		fclose(fg);
-		
-		printf_s( "\nImage saved as a ppm file\n");
-		free(fg);
-	}
-}
-
-
 int main(int argc, char* argv[])
 {
 	//exit(1);
 	FILE* JpegFile;
 	
+	//fopen_s(&JpegFile, "Test_img.jpeg", "rb");//OPen the image as a file 
 	fopen_s(&JpegFile, "Divisible.jpg", "rb");//OPen the image as a file 
-
 	if (!JpegFile) {// if the image is not valid 
 		cout << "There Was an Error opening the image\n";
 	}
@@ -45,7 +25,7 @@ int main(int argc, char* argv[])
 	int JpgSize = (unsigned int)ftell(JpegFile);//get the position of the file to show the size of the origional file 
 	cout << "The Origional file size is: " << JpgSize<<" Bytes\n";
 	unsigned char* JpgBuffer = (unsigned char*)malloc(JpgSize);//create a buffer for the image file 
-	cout << "\nSize by another method: " << sizeof(*JpegFile);
+	//cout << "\nSize by another method: " << sizeof(*JpegFile);
 	fseek(JpegFile, 0, SEEK_SET);//go back to the start of the file 
 
 	int size = (int)fread(JpgBuffer, 1, JpgSize, JpegFile);//read each element to the buffer and get the total amount read 
@@ -82,7 +62,9 @@ int main(int argc, char* argv[])
 	}
 
 	int a= Decode(bitbuf, info);
-	
+
+	cout << "\nCompleted Decoding";
+	/*
 	//_save_to_ppm(info);
 	if (!(WriteToBMP(info))) {
 		cout << "\nWriting to BMP Failed";
@@ -90,22 +72,17 @@ int main(int argc, char* argv[])
 	else {
 		cout << "\nWrote to BMP";
 	}
-	
+	*/
 	//_save_to_ppm(info);
-	if (!(NewBetterBMP(info))) {
-		cout << "\nWriting to BMP Failed";
-	}
-	else {
-		cout << "\nWrote to BMP";
-	}
-
-	//cout << "Decode Status: "<<a; 
+	cout << "\n\nStarted Write to BitMap Image";
+	int newsiz = (NewBetterBMP(info));
 	
-	//cout << "\nPixel 4: " << info->pixels[0];
+	
+		cout << "\nWrote to BitMap Image";
+		cout << "\nNew File Size: " << newsiz <<" Bytes\n\n\n\n\n";
+		
+
 
 	//free(bitbuf);
-	//_save_to_ppm(info);
 
-	//exit(1);
-	
 }

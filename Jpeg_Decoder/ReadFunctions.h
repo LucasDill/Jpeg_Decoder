@@ -536,7 +536,7 @@ int Decode(struct BitBuffer* bits, struct JpegInfo* info) {
 		default:
 			if (marker >= 0xffe0 && marker <= 0xffef)
 			{
-				cout << "\nAPP SEGMENT"<<skip(bits);
+				cout << "\nAPP SEGMENT size: "<<skip(bits);
 			}
 			else if (marker == 0xfffe) {
 				cout << "\nCOM SEGMENT"<<skip(bits);

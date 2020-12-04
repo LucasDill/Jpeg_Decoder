@@ -155,25 +155,25 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	 
 	 int wid, len;
 
-	  if (info->width >= info->height)
-	  {
+	  //if (info->width >= info->height)
+	//  {
 		   wid = info->width;
 		   len = info->height;
-	  }
-	  else {
-		   wid = info->height;
-		   len = info->width;
-	  }
-
+	  //}
+	  //else {
+		 //  wid = info->height;
+		 //  len = info->width;
+	//  }
+	  
 
 	  int* greyscale=(int*)malloc(sizeof(*greyscale)*wid*len*3);
 	  int r, g, b;
-	 for (int l = 0; l < info->width; l++)
+	 for (int l = 0; l < len; l++)
 	 {
-		 for (int m = 0; m < info->height; m++)
+		 for (int m = 0; m < wid; m++)
 		 {
-			 greyscale[(l*wid)+m] = (int)info->pixels[(l*wid)+m];
-			 greyscale[(l * wid) + m] = greyscale[(l * wid) + m] + 128;
+			 greyscale[(l*len)+m] = (int)info->pixels[(l*len)+m];
+			 greyscale[(l * len) + m] = greyscale[(l * len) + m] + 128;
 		 }
 		 
 	 }
@@ -181,17 +181,17 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 
 	 FILE* f;
 	 unsigned char* img = NULL;
-	 int filesize = 54 + 3 * info->width * info->height;  //w is your image width, h is image height, both int
+	 int filesize = 54 + 3 * wid* len;  //w is your image width, h is image height, both int
 
-	 img = (unsigned char*)malloc(3 * info->width * info->height);
-	 memset(img, 0, 3 * info->width * info->height);
+	 img = (unsigned char*)malloc(3 * wid * len);
+	 memset(img, 0, 3 * wid * len);
 
-	 for (int i = 0; i < info->width; i++)
+	 for (int i = 0; i < wid; i++)
 	 {
-		 for (int j = 0; j < info->height; j++)
+		 for (int j = 0; j < len; j++)
 		 {
 			 
-			 int x = i; int y = (info->height - 1) - j;
+			 int x = i; int y = (len - 1) - j;
 			 
 			 /*r = greyscale[(i * wid) + j] * 255;
 			 g = greyscale[(i * wid) + j] * 255;
@@ -201,9 +201,9 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 			 if (b > 255) b = 255;
 			 */
 
-			 img[(x + y * wid) * 3 + 2] = (unsigned char)(info->pixels[(i*wid)+j]);
-			 img[(x + y * wid) * 3 + 1] = (unsigned char)(info->pixels[(i * wid) + j]);
-			 img[(x + y * wid) * 3 + 0] = (unsigned char)(info->pixels[(i * wid) + j]);
+			 img[(x +y * wid) * 3 + 2] = (unsigned char)(info->pixels[(y * wid) + x]);
+			 img[(x +y * wid) * 3 + 1] = (unsigned char)(info->pixels[(y * wid) + x]);
+			 img[(x +y * wid) * 3 + 0] = (unsigned char)(info->pixels[(y * wid) + x]);
 		 }
 	 }
 
@@ -228,7 +228,7 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	 f = fopen("img.bmp", "wb");
 	 fwrite(bmpfileheader, 1, 14, f);
 	 fwrite(bmpinfoheader, 1, 40, f);
-	 for (int i = 0; i < len; i++)
+	 for (int i = 0; i < wid; i++)
 	 {
 		 fwrite(img + (wid * (len - i - 1) * 3), 3, wid, f);
 		 fwrite(bmppad, 1, (4 - (wid * 3) % 4) % 4, f);
@@ -238,7 +238,7 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	 fclose(f);
 
 
-	 return 1;
+	 return filesize;
  }
 
 
