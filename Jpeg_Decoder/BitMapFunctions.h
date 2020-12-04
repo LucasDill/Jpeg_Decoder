@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <cstdint>
-#include <fstream>
+//#include <fstream>
 
 int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	memset((char*) head, 0, sizeof(BMPFileHeader)); /* sets everything to 0 */
@@ -72,24 +72,21 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 
 	//This is where we write the data from the info to the image
 	//To get the raw image we can take the pixels from the info class 
-	char* raw_image;
-	 raw_image = (char*)info->pixels;
+	unsigned char* raw_image;
+	 raw_image = ( unsigned char*)info->pixels;
 	//cout << Header->width;
 	
 	/*cout << "\n"<< sizeof(unsigned char *);
 	cout <<"\n" <<*(img + (48576));
 	cout << "\n" <<*(img + (4 + 32 * 2) * 700 + 2);
 	cout <<"\n" <<*(img+7279);
-	int a = 0;
-	/while (*(img + a) != NULL)
-	{
-		cout << *(img + a);
-		a++;
-	}
-	cout << "\n\n\n\n\n\n\n\n\n\n\n\n\The Final Number for a was:" << a;
-	*/
+	int a = 0;*/	
+	
+	
 	int bytes_per_pixel =1;
 	
+	cout << "\n " << Header->filesize;
+	cout << "\n " << Header->filesize/3;
 	const int b = Header->filesize;
 	int* arr = (int*)malloc(sizeof(*arr)*(Header->filesize/3));
 
@@ -98,10 +95,16 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 		int greyscale = (int)raw_image[l];
 		greyscale = greyscale + 128;
 		arr[l] = greyscale;
-		cout << arr[l]<<" ";
+		//cout << arr[l]<<" ";
 	}
-	cout << arr;
-
+	//cout << arr;
+	int a=0;
+	while (info->pixels[a] != NULL)
+	{
+		//cout <<  arr[a];
+		a++;
+	}
+	//cout << "\n\n\n\n\n\n\n\n\n\n\n\n\The Final Number for a was:" << a;
 
 	int line, x;
 	for ( line = Header->height; line>=0; line--) {
@@ -120,7 +123,7 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 
  int NewBetterBMP(struct JpegInfo* info)
  {
-	 BmpHeader Mainhead;
+	/* BmpHeader Mainhead;
 	 BmpInfoHead infoHead;
 
 	 Mainhead.sizeofFile = 54 + (info->width * info->height * 3);
@@ -147,6 +150,93 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	 }
 	 fout.close();
 	 //cout<<"\na="<<a;
+
+	 return 1;*/
+	 
+	 int wid, len;
+
+	  if (info->width >= info->height)
+	  {
+		   wid = info->width;
+		   len = info->height;
+	  }
+	  else {
+		   wid = info->height;
+		   len = info->width;
+	  }
+
+
+	  int* greyscale=(int*)malloc(sizeof(*greyscale)*wid*len*3);
+	  int r, g, b;
+	 for (int l = 0; l < info->width; l++)
+	 {
+		 for (int m = 0; m < info->height; m++)
+		 {
+			 greyscale[(l*wid)+m] = (int)info->pixels[(l*wid)+m];
+			 greyscale[(l * wid) + m] = greyscale[(l * wid) + m] + 128;
+		 }
+		 
+	 }
+
+
+	 FILE* f;
+	 unsigned char* img = NULL;
+	 int filesize = 54 + 3 * info->width * info->height;  //w is your image width, h is image height, both int
+
+	 img = (unsigned char*)malloc(3 * info->width * info->height);
+	 memset(img, 0, 3 * info->width * info->height);
+
+	 for (int i = 0; i < info->width; i++)
+	 {
+		 for (int j = 0; j < info->height; j++)
+		 {
+			 
+			 int x = i; int y = (info->height - 1) - j;
+			 
+			 /*r = greyscale[(i * wid) + j] * 255;
+			 g = greyscale[(i * wid) + j] * 255;
+			 b = greyscale[(i * wid) + j] * 255;
+			 if (r > 255) r = 255;
+			 if (g > 255) g = 255;
+			 if (b > 255) b = 255;
+			 */
+
+			 img[(x + y * wid) * 3 + 2] = (unsigned char)(info->pixels[(i*wid)+j]);
+			 img[(x + y * wid) * 3 + 1] = (unsigned char)(info->pixels[(i * wid) + j]);
+			 img[(x + y * wid) * 3 + 0] = (unsigned char)(info->pixels[(i * wid) + j]);
+		 }
+	 }
+
+	 unsigned char bmpfileheader[14] = { 'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0 };
+	 unsigned char bmpinfoheader[40] = { 40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0 };
+	 unsigned char bmppad[3] = { 0,0,0 };
+
+	 bmpfileheader[2] = (unsigned char)(filesize);
+	 bmpfileheader[3] = (unsigned char)(filesize >> 8);
+	 bmpfileheader[4] = (unsigned char)(filesize >> 16);
+	 bmpfileheader[5] = (unsigned char)(filesize >> 24);
+
+	 bmpinfoheader[4] = (unsigned char)(wid);
+	 bmpinfoheader[5] = (unsigned char)(wid >> 8);
+	 bmpinfoheader[6] = (unsigned char)(wid >> 16);
+	 bmpinfoheader[7] = (unsigned char)(wid >> 24);
+	 bmpinfoheader[8] = (unsigned char)(len);
+	 bmpinfoheader[9] = (unsigned char)(len >> 8);
+	 bmpinfoheader[10] = (unsigned char)(len >> 16);
+	 bmpinfoheader[11] = (unsigned char)(len >> 24);
+
+	 f = fopen("img.bmp", "wb");
+	 fwrite(bmpfileheader, 1, 14, f);
+	 fwrite(bmpinfoheader, 1, 40, f);
+	 for (int i = 0; i < len; i++)
+	 {
+		 fwrite(img + (wid * (len - i - 1) * 3), 3, wid, f);
+		 fwrite(bmppad, 1, (4 - (wid * 3) % 4) % 4, f);
+	 }
+
+	 free(img);
+	 fclose(f);
+
 
 	 return 1;
  }

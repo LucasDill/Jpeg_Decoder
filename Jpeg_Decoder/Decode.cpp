@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	//exit(1);
 	FILE* JpegFile;
 	
-	fopen_s(&JpegFile, "Test_img.jpeg", "rb");//OPen the image as a file 
+	fopen_s(&JpegFile, "Divisible.jpg", "rb");//OPen the image as a file 
 
 	if (!JpegFile) {// if the image is not valid 
 		cout << "There Was an Error opening the image\n";
