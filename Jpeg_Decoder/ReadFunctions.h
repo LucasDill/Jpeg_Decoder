@@ -15,66 +15,52 @@ unsigned char MoveByte(struct BitBuffer* bits) {
 
 unsigned short MoveWord(struct BitBuffer* bits)
 {
-	unsigned char byte = MoveByte(bits);
-	unsigned short a = byte << 8 | MoveByte(bits);
+	unsigned char byte = MoveByte(bits);//get the byte 
+	unsigned short a = byte << 8 | MoveByte(bits);//shift the 
 	return a;
 }
 
-void GetQuantTable(struct BitBuffer* bits, struct JpegInfo* info)
+void GetQuantTable(struct BitBuffer* bits, struct JpegInfo* info)//get the quantization table 
 {
 	unsigned short length;
-	length = MoveWord(bits);
-	int off = bits->read_position;
+	length = MoveWord(bits);//find the total length needed 
+	int off = bits->read_position;//get the current position in the file structure
 	int max = off + length - 2;
-	while (off < max) {
+	while (off < max) {//loop for the whole length of the section 
 		unsigned char buffer =(unsigned char) MoveByte(bits);
 		unsigned char midbuf = buffer >> 4;
-		unsigned char id = buffer & 0xf;
-		info->table[id] = &bits->data[bits->read_position];
+		unsigned char id = buffer & 0xf;//add the buffer value to the id
+		info->table[id] = &bits->data[bits->read_position];//save the current position in the array element 
 		bits->read_position += 64;
 		off = bits->read_position;
 	}
 }
 
-void DecodeFrame(struct BitBuffer* bits, struct JpegInfo* info)
+void DecodeFrame(struct BitBuffer* bits, struct JpegInfo* info)//get the general file information as well as the frame for grayscale
 {
-	unsigned short length = MoveWord(bits);
+	unsigned short length = MoveWord(bits);//get to the start of the information 
 	unsigned char byte = MoveByte(bits);
-	int maxHorizontal = 0;
-	int maxVertical = 0;
+	
 	info->height = MoveWord(bits);
 	info->width = MoveWord(bits);
 	info->component_count = MoveByte(bits);
 
-	for (int i = 0; i < info->component_count; i++)
-	{
-		struct sampleInfo* samp = &info->comp[i];
-		samp->id = MoveByte(bits);
-		unsigned char byteholder = MoveByte(bits);
-		samp->Hor_sample = byteholder >> 4;
-		samp->Vert_sample = byteholder & 0xf;
-		samp->tableID = MoveByte(bits);
+	
+	struct sampleInfo* samp = &info->comp;
+	samp->id = MoveByte(bits);
+	unsigned char byteholder = MoveByte(bits);
+	samp->Hor_sample = byteholder >> 4;
+	samp->Vert_sample = byteholder & 0xf;
+	samp->tableID = MoveByte(bits);
 
-		//cout << "\n Horizontal; " << samp->Hor_sample<<"\n Vertical: "<<samp->Vert_sample;
-		assert((samp->Hor_sample & (samp->Hor_sample - 1)) == 0);
-		assert((samp->Vert_sample & (samp->Vert_sample - 1)) == 0);
+	//cout << "\n Horizontal; " << samp->Hor_sample<<"\n Vertical: "<<samp->Vert_sample;
 
-		if (maxHorizontal < samp->Hor_sample)
-		{
-			maxHorizontal = samp->Hor_sample;
-		}
-		if (maxVertical < samp->Vert_sample)
-		{
-			maxVertical = samp->Vert_sample;
-		}
-	}
-	info->mcu_height = maxVertical << 3;
-	info->mcu_width = maxHorizontal << 3;
+	info->mcu_height = samp->Hor_sample << 3;
+	info->mcu_width = samp->Vert_sample << 3;
 	info->vert_mcu = (info->height + info->mcu_height - 1) / info->mcu_height;
 	info->hors_mcu = (info->width + info->mcu_width - 1) / info->mcu_width;
 	
-	struct sampleInfo* info2 = &info->comp[0];
-	info->blocks_mcu = info2->Hor_sample * info2->Vert_sample + info->component_count-1;
+	info->blocks_mcu = samp->Hor_sample * samp->Vert_sample + info->component_count-1;
 	info->scan_length = info->width * info->mcu_height* info->component_count;
 	info->scan = (unsigned char*)malloc(info->scan_length);
 	info->pixel_length = info->width * info->height * info->component_count;
@@ -84,30 +70,23 @@ void DecodeFrame(struct BitBuffer* bits, struct JpegInfo* info)
 }
 
 
-void DecodeRestart(struct BitBuffer* bits, struct JpegInfo* info)
-{
-	unsigned short first = MoveWord(bits);
-	unsigned short second = MoveWord(bits);
-	info->rest = second;
-	info->restCount = second;
-	info->restNext = 0;
-}
+
 
 void GetHuffman(struct BitBuffer* bits, struct JpegInfo* info)
 {
 	unsigned short length = MoveWord(bits);
-	unsigned int start = bits->read_position;
+	unsigned int start = bits->read_position;//find the total length of the section 
 	unsigned int end = start + length - 2;
 	while (start < end)
 	{
 		unsigned char position = MoveByte(bits);
 		unsigned char tableid = (position >> 3) | (position & 0xf);
-		struct hTable* tab = &info->htab[tableid];
-		for (int i = 0; i < 16; i++)
+		struct hTable* tab = &info->htab[tableid];//create a new poiner object with the id generated 
+		for (int i = 0; i < 16; i++)//fill the table with arrays 
 		{
 			int counts = MoveByte(bits);
 			tab->count += counts;
-			struct hArray arry = { 0, NULL };
+			struct hArray arry = { 0, NULL };//allocate the memory for each object 
 			if (counts > 0) {
 				arry.count = counts;
 				arry.v = (hVlc*)malloc(sizeof(*arry.v) * counts);
@@ -118,7 +97,7 @@ void GetHuffman(struct BitBuffer* bits, struct JpegInfo* info)
 		int base, b;
 		for ( b = 0,base=0; b < 16; b++) 
 		{
-			struct hArray* arrv = &tab->arr[b];
+			struct hArray* arrv = &tab->arr[b];//create and fill the values for each table 
 			for (int c = 0; c < arrv->count; c++)
 			{
 				struct hVlc* v = & arrv->v[c];
@@ -182,7 +161,7 @@ void SkipBits(struct BitBuffer* bits, int n) {
 	}
 }
 
-
+/////////////////////////////////////////////////////////////////////////////
 void BufferDump(const unsigned char* buffer, int stride) {
 	int i, base = 0;
 	for (i = 0; i < 64; i++) {
@@ -342,11 +321,12 @@ void ConvertCol(const signed int* blk, unsigned char* out, int stride) {//perfro
 	*out = limit(((x7 - x1) >> 14) + 128);
 }
 
-void DecodeColour(struct BitBuffer* bits, struct JpegInfo* info, int id)
+void DecodeColour(struct BitBuffer* bits, struct JpegInfo* info)
 {
+	int id = 0;
 	struct hTable* tabl = NULL;
 	int val,a;
-	struct sampleInfo* inf = &info->comp[id];
+	struct sampleInfo* inf = &info->comp;
 	const unsigned char* tabif = info->table[inf->tableID];
 	assert(tabif);
 	if (tabif == 0)
@@ -399,7 +379,7 @@ void ConvertGrayscale(struct JpegInfo* info, int num)
 {
 	//cout << "\nConverting that grey";
 	unsigned char* output = info->scan;
-	unsigned char* pix = info->comp[0].pixels;
+	unsigned char* pix = info->comp.pixels;
 	int pixbas = 0;
 	int outbas = num * info->mcu_width;///////////////
 	for (int i = 0; i < info->mcu_height; i++)/////////////
@@ -414,31 +394,27 @@ void ScanDecode(struct BitBuffer* bits, struct JpegInfo* info)
 {
 	//cout << "\n SCAN DECODE CALLED";
 	unsigned short length = MoveWord(bits);
-	unsigned char scanlen = MoveByte(bits);
+	unsigned char scanlen = MoveByte(bits);//move the object along past the 
 	//printf_s("\nScan header %d, %d\n", length, scanlen);
-	for (int i = 0; i < scanlen; i++)
-	{
-		struct sampleInfo* si = &info->comp[i];
-		unsigned char id = MoveByte(bits);
-		unsigned char buffer = MoveByte(bits);
-		si->dc_id = buffer >> 4;
-		si->ac_id = (buffer & 1) | 2;
-	}
+	
+	struct sampleInfo* si = &info->comp;
+	unsigned char id = MoveByte(bits);
+	unsigned char buffer = MoveByte(bits);
+	si->dc_id = buffer >> 4;//set the alternating and direct id's 
+	si->ac_id = (buffer & 1) | 2;
+	
 	
 	unsigned char s1 = MoveByte(bits);
 	unsigned char s2 = MoveByte(bits);
 	unsigned char buffer2 = MoveByte(bits);
-	assert(s2 == 63);
 
-	for (int b = 0; b < info->vert_mcu; b++)
+
+	for (int b = 0; b < info->vert_mcu; b++)//loop though the height and width of the frame 
 	{
 		for (int c = 0; c < info->hors_mcu; c++)
 		{
-			for (int d = 0; d < info->blocks_mcu; d++)
-			{
-				
-				DecodeColour(bits, info, d);
-			}
+				DecodeColour(bits, info);
+			
 			//cout << "\nBlocks for colour: " << info->blocks_mcu;
 			if (info->blocks_mcu == 1) {
 				//cout << "\nGray All the Way";
@@ -451,10 +427,6 @@ void ScanDecode(struct BitBuffer* bits, struct JpegInfo* info)
 			 cout << "\nThis Program Only accepts Greyscale Images Please Enter a Different Image";
 			 exit(1);
 			}
-			//cout << "\n Made it past";
-			//restart the dc 
-			//cout << "\nrest: " << info->rest << "  restCount: " << info->restCount;
-			//cout << "  Weird Format: " << --info->restCount;
 			if (info->rest && !(--info->restCount)) {
 				//cout << "\nRest If";
 				unsigned short nex = MoveWord(bits);
@@ -471,10 +443,9 @@ void ScanDecode(struct BitBuffer* bits, struct JpegInfo* info)
 				}
 				info->restNext = (nex + 1) & 0x7;
 				info->restCount = info->rest;
-				for (int h = 0; h < info->component_count; h++)
-				{
-					info->comp[h].dc = 0;
-				}
+				
+				info->comp.dc = 0;
+				
 			}
 		ScanLine:
 			//cout << "\nWOO scan Line";
@@ -485,72 +456,59 @@ void ScanDecode(struct BitBuffer* bits, struct JpegInfo* info)
 	}
 }
 
-int skip(struct BitBuffer* bits)
-{
-	unsigned short length = MoveWord(bits);
-	bits->read_position += (length - 2);
-	return length;
-}
 
-int Decode(struct BitBuffer* bits, struct JpegInfo* info) {
+
+void Decode(struct BitBuffer* bits, struct JpegInfo* info) {
 	//cout << "\nDecodeCall";
 	//cout << "\nOUTSIDE OF WHILE "<<bits->read_endOfFile<<"\n"<<bits->read_position<<"\n"<<bits->length;
 	//bits->read_endOfFile = 1;
 	int quant=0, decodefr=0, decoderes=0, gethuf=0, scande=0;
 	
-	while (!(bits->read_endOfFile || bits->read_position >= bits->length))
+	while (!(bits->read_endOfFile || bits->read_position >= bits->length))//loop as long as there is no end of file
 	{
 		//cout << "\nBit Info" << bits->read_position << " " << bits->length << "\n" << bits->read_endOfFile;
 		//cout << "\nINSIDE WHILE";
-		unsigned short marker = MoveWord(bits);
+		unsigned short marker = MoveWord(bits);//get the next word from the file information 
 		//cout << marker;
 		switch (marker) {
 		case 0xffd8://This is the start of the image 
 			cout<<"Start of Image\n";
 			break;
 		case 0xffdb://If the next word is the quantization table retreive it
-			GetQuantTable(bits, info);
+			GetQuantTable(bits, info);//read the quantization table 
 			cout << "\nGet Quantization Table";
 			quant++;
 			break;
 		case 0xffc0:
-			DecodeFrame(bits, info);
+			DecodeFrame(bits, info);///get file information from the header such as the height and width 
 			cout << "\nGet Data Frame";
 			decodefr++;
 			break;
-		case 0xffdd:
-			DecodeRestart(bits, info);
-			cout << "\nRestart Decoding";
-			decoderes++;
-			break;
 		case 0xffc4:
-			GetHuffman(bits, info);
+			GetHuffman(bits, info);//Get the function headers which are stored in the file header 
 			cout << "\nGet Huffman Tables";
 			gethuf++;
 			break;
 		case 0xffda:
-			ScanDecode(bits, info);
+			ScanDecode(bits, info);//Decode the file information
 			cout << "\nStart the Decode";
 			scande++;
 		break;
 		default:
 			if (marker >= 0xffe0 && marker <= 0xffef)
 			{
-				cout << "\nAPP SEGMENT size: "<<skip(bits);
+				unsigned short length = MoveWord(bits);//move the word along 
+				bits->read_position += (length - 2);//move the current position along to the next length subtracted by 2
+				cout << "\nAPP SEGMENT size: "<<length;
 			}
-			else if (marker == 0xfffe) {
-				cout << "\nCOM SEGMENT"<<skip(bits);
-			}
-			else {
-				//cout << "\nUnknown Marker";
-				return 0;
-			}
+			
+		
 			break;
 	}
 		
 	}
 	
-	return 1;
+	
  }
 
 

@@ -30,8 +30,8 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	return BytesPerLine;
 }
 
-
- int WriteToBMP(struct JpegInfo* info)
+/*
+ int WriteBMP(struct JpegInfo* info)
 {
 	struct BMPFileHeader* Header=(BMPFileHeader*)malloc(sizeof(*Header));
 
@@ -80,7 +80,7 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	cout <<"\n" <<*(img + (48576));
 	cout << "\n" <<*(img + (4 + 32 * 2) * 700 + 2);
 	cout <<"\n" <<*(img+7279);
-	int a = 0;*/	
+	int a = 0;
 	
 	
 	int bytes_per_pixel =1;
@@ -120,64 +120,21 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 	fclose(outBmp);
 	return 1;
 }
-
- int NewBetterBMP(struct JpegInfo* info)
+*/
+ int WriteBMP(struct JpegInfo* info)
  {
-	/* BmpHeader Mainhead;
-	 BmpInfoHead infoHead;
-
-	 Mainhead.sizeofFile = 54 + (info->width * info->height * 3);
-
-	 infoHead.width = info->width;
-	 infoHead.height = info->height;
-	 infoHead.hor_rez = round(info->width * 7);
-	 infoHead.ver_rez = round(info->height * 7);
-
-	 ofstream fout("Output.bmp", ios::binary);
-		 
-	 fout.write((char *) &Mainhead, 14);
-	 fout.write((char*) &infoHead, 40);
-	 size_t numberOfPixels = info->width * info->height;
 	
-	 cout <<"\n" <<sizeof(&info->pixels[3]);
-	 &info->pixels[3];
-	 cout << "\n" << sizeof(char);
-	 cout << "\n" << sizeof(char*);
-	 for (int i = 0; i < numberOfPixels; i++)
-	 {
-		 &info->pixels[i];
-		 fout.write((char*)	&info->pixels[i], sizeof(&info->pixels[i]));
-	 }
-	 fout.close();
-	 //cout<<"\na="<<a;
-
-	 return 1;*/
 	 
 	 int wid, len;
 
-	  //if (info->width >= info->height)
-	//  {
+	
 		   wid = info->width;
 		   len = info->height;
-	  //}
-	  //else {
-		 //  wid = info->height;
-		 //  len = info->width;
-	//  }
+
 	  
 
 	  int* greyscale=(int*)malloc(sizeof(*greyscale)*wid*len*3);
-	  int r, g, b;
-	 for (int l = 0; l < len; l++)
-	 {
-		 for (int m = 0; m < wid; m++)
-		 {
-			 greyscale[(l*len)+m] = (int)info->pixels[(l*len)+m];
-			 greyscale[(l * len) + m] = greyscale[(l * len) + m] + 128;
-		 }
-		 
-	 }
-
+	  
 
 	 FILE* f;
 	 unsigned char* img = NULL;
@@ -191,19 +148,11 @@ int intializeHeader(struct JpegInfo* info, struct BMPFileHeader* head) {
 		 for (int j = 0; j < len; j++)
 		 {
 			 
-			 int x = i; int y = (len - 1) - j;
+			 int y = (len - 1) - j;//reverse the 
 			 
-			 /*r = greyscale[(i * wid) + j] * 255;
-			 g = greyscale[(i * wid) + j] * 255;
-			 b = greyscale[(i * wid) + j] * 255;
-			 if (r > 255) r = 255;
-			 if (g > 255) g = 255;
-			 if (b > 255) b = 255;
-			 */
-
-			 img[(x +y * wid) * 3 + 2] = (unsigned char)(info->pixels[(y * wid) + x]);
-			 img[(x +y * wid) * 3 + 1] = (unsigned char)(info->pixels[(y * wid) + x]);
-			 img[(x +y * wid) * 3 + 0] = (unsigned char)(info->pixels[(y * wid) + x]);
+			 img[(i +y * wid) * 3 + 2] = (unsigned char)(info->pixels[(y * wid) + i]);
+			 img[(i +y * wid) * 3 + 1] = (unsigned char)(info->pixels[(y * wid) + i]);
+			 img[(i +y * wid) * 3 + 0] = (unsigned char)(info->pixels[(y * wid) + i]);
 		 }
 	 }
 

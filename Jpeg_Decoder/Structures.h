@@ -1,7 +1,6 @@
 #ifndef Structures
 #define Structures
-#include <cstdint>
-#include <fstream>
+
 struct BitBuffer {
 	unsigned char* data;
 	int length;
@@ -44,12 +43,13 @@ struct sampleInfo {
 
 struct JpegInfo {
 	int width, height;
-	unsigned char* table[2];
+	unsigned char* table[2];//quantization tables 
 	int table_count;
 	int component_count;
-	struct hTable htab[4];
-	struct sampleInfo comp[3];
+	struct hTable htab[4];//Huffman tables 
+	struct sampleInfo comp;
 
+	//////////////this is all of the info for the frame of bits 
 	int mcu_width;
 	int mcu_height;
 	int hors_mcu;
@@ -64,7 +64,7 @@ struct JpegInfo {
 	int scan_length;
 
 	unsigned char* pixels;
-	int pixel_length;
+	int pixel_length;// length of the pixels
 };
 
 
@@ -104,27 +104,6 @@ struct BMPFileHeader {
 	long Important;
 };
 
-
-struct BmpHeader {
-	char bitmapSignatureBytes[2] = { 'B','M' };
-	uint32_t sizeofFile=0;//change later 
-	uint32_t reservedBytes = 0;
-	uint32_t PixelOffset = 54;
-};
-
-struct BmpInfoHead {
-	uint32_t sizethis = 40;
-	int32_t width = 0;//change later 
-	int32_t height = 0;//change later
-	uint16_t colourplanes = 1;
-	uint16_t ColourDepth = 24;
-	uint32_t compression = 0;
-	uint32_t bitdatsize = 0;
-	int32_t hor_rez = 0;///change later
-	int32_t ver_rez = 0;///////come change later
-	uint32_t colourtable = 0;
-	uint32_t importantColours = 0;
-};
 
 
 #endif

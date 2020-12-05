@@ -10,8 +10,10 @@ using namespace std;
 int main(int argc, char* argv[])
 {
 	//exit(1);
-	FILE* JpegFile;
-	
+	FILE* JpegFile;//create a file for the JPEG
+	//used two to compare image results 
+	//fopen_s(&JpegFile, "Drawn_Face.jpg", "rb");//OPen the image as a file 
+	//fopen_s(&JpegFile, "Good_Quality.jpg", "rb");//OPen the image as a file 
 	//fopen_s(&JpegFile, "Test_img.jpeg", "rb");//OPen the image as a file 
 	fopen_s(&JpegFile, "Divisible.jpg", "rb");//OPen the image as a file 
 	if (!JpegFile) {// if the image is not valid 
@@ -61,11 +63,11 @@ int main(int argc, char* argv[])
 		cout << "\nERROR CREATING THE JPEG INFO";
 	}
 
-	int a= Decode(bitbuf, info);
+	Decode(bitbuf, info);
 
 	cout << "\nCompleted Decoding";
 	/*
-	//_save_to_ppm(info);
+
 	if (!(WriteToBMP(info))) {
 		cout << "\nWriting to BMP Failed";
 	}
@@ -73,9 +75,9 @@ int main(int argc, char* argv[])
 		cout << "\nWrote to BMP";
 	}
 	*/
-	//_save_to_ppm(info);
+	
 	cout << "\n\nStarted Write to BitMap Image";
-	int newsiz = (NewBetterBMP(info));
+	int newsiz = (WriteBMP(info));
 	
 	
 		cout << "\nWrote to BitMap Image";
