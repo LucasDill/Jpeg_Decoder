@@ -43,7 +43,7 @@ struct sampleInfo {
 
 struct JpegInfo {
 	int width, height;
-	unsigned char* table[2];//quantization tables 
+	unsigned char* table;//quantization tables 
 	int table_count;
 	int component_count;
 	struct hTable htab[4];//Huffman tables 
@@ -69,7 +69,7 @@ struct JpegInfo {
 
 
 
-static unsigned char ZigMat[64] = {
+static unsigned char ZigMat[64] = {//zigzag pattern used to get the correct order of the info 
 	0,  1,  8, 16,  9,  2,  3, 10,
 	17, 24, 32, 25, 18, 11,  4,  5,
 	12, 19, 26, 33, 40, 48, 41, 34,
@@ -98,8 +98,8 @@ struct BMPFileHeader {
 	short bits;
 	long Compression;
 	long ImageSize;
-	long xpix=1000;
-	long ypix=1000;
+	long xpix;
+	long ypix;
 	long clrused;
 	long Important;
 };

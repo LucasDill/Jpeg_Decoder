@@ -7,15 +7,19 @@
 
 using namespace std;
 
+
+
 int main(int argc, char* argv[])
 {
 	//exit(1);
 	FILE* JpegFile;//create a file for the JPEG
 	//used two to compare image results 
-	//fopen_s(&JpegFile, "Drawn_Face.jpg", "rb");//OPen the image as a file 
-	//fopen_s(&JpegFile, "Good_Quality.jpg", "rb");//OPen the image as a file 
+	//fopen_s(&JpegFile, "image.jpeg", "rb");//OPen the image as a file 
+	//fopen_s(&JpegFile, "Hand.jpeg", "rb");//OPen the image as a file 
+	fopen_s(&JpegFile, "Lines1.jpg", "rb");
 	//fopen_s(&JpegFile, "Test_img.jpeg", "rb");//OPen the image as a file 
-	fopen_s(&JpegFile, "Divisible.jpg", "rb");//OPen the image as a file 
+
+	//fopen_s(&JpegFile, "Divisible.jpg", "rb");//OPen the image as a file 
 	if (!JpegFile) {// if the image is not valid 
 		cout << "There Was an Error opening the image\n";
 	}
@@ -27,11 +31,9 @@ int main(int argc, char* argv[])
 	int JpgSize = (unsigned int)ftell(JpegFile);//get the position of the file to show the size of the origional file 
 	cout << "The Origional file size is: " << JpgSize<<" Bytes\n";
 	unsigned char* JpgBuffer = (unsigned char*)malloc(JpgSize);//create a buffer for the image file 
-	//cout << "\nSize by another method: " << sizeof(*JpegFile);
 	fseek(JpegFile, 0, SEEK_SET);//go back to the start of the file 
 
 	int size = (int)fread(JpgBuffer, 1, JpgSize, JpegFile);//read each element to the buffer and get the total amount read 
-	
 	if (size != JpgSize) {//if the size is different there was an issue reading the file 
 		cout << "ERROR READING FILE TO BUFFER";
 	}
@@ -54,7 +56,7 @@ int main(int argc, char* argv[])
 	
 
 	//Create the buffer for the jepg info and fill it with zeros 
-	struct JpegInfo* info = (JpegInfo*)malloc(sizeof(*info));
+	struct JpegInfo* info= (JpegInfo*)malloc(sizeof(*info));
 	if (info)
 	{
 		memset(info, 0, sizeof(*info));
@@ -66,25 +68,17 @@ int main(int argc, char* argv[])
 	Decode(bitbuf, info);
 
 	cout << "\nCompleted Decoding";
-	/*
-
-	if (!(WriteToBMP(info))) {
-		cout << "\nWriting to BMP Failed";
-	}
-	else {
-		cout << "\nWrote to BMP";
-	}
-	*/
+	
 	
 	cout << "\n\nStarted Write to BitMap Image";
-	int newsiz = (WriteBMP(info));
 	
 	
 		cout << "\nWrote to BitMap Image";
-		cout << "\nNew File Size: " << newsiz <<" Bytes\n\n\n\n\n";
+		//cout << "\nNew File Size: " << newsiz <<" Bytes\n\n\n\n\n";
 		
 
-
-	//free(bitbuf);
-
+		int t = WriteBMP_Org(info);
+		cout << "\nThe new Bitmap File Size is: " << t<<" Bytes";
+		float increase = round(((float)t / (float)JpgSize)*100);
+		cout << "\nFile Size Increased by: " <<increase  << "%\n\n\n";
 }

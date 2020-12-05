@@ -5,11 +5,15 @@
 #include <string.h>
 #include <assert.h>
 #include "Structures.h"
+
+#include "ReadFunctions.h"
 #include <iostream>
 
 using namespace std;
 
-unsigned char MoveByte(struct BitBuffer* bits) {
+
+
+unsigned char MoveByte(struct BitBuffer* bits) {//move one byte into the file 
 	return bits->data[bits->read_position++];
 }
 
@@ -20,6 +24,8 @@ unsigned short MoveWord(struct BitBuffer* bits)
 	return a;
 }
 
+
+
 void GetQuantTable(struct BitBuffer* bits, struct JpegInfo* info)//get the quantization table 
 {
 	unsigned short length;
@@ -27,13 +33,14 @@ void GetQuantTable(struct BitBuffer* bits, struct JpegInfo* info)//get the quant
 	int off = bits->read_position;//get the current position in the file structure
 	int max = off + length - 2;
 	while (off < max) {//loop for the whole length of the section 
-		unsigned char buffer =(unsigned char) MoveByte(bits);
+		unsigned char buffer = (unsigned char)MoveByte(bits);
 		unsigned char midbuf = buffer >> 4;
 		unsigned char id = buffer & 0xf;//add the buffer value to the id
-		info->table[id] = &bits->data[bits->read_position];//save the current position in the array element 
+		info->table = &bits->data[bits->read_position];//save the current position in the array element 
 		bits->read_position += 64;
 		off = bits->read_position;
 	}
+	
 }
 
 void DecodeFrame(struct BitBuffer* bits, struct JpegInfo* info)//get the general file information as well as the frame for grayscale
@@ -327,7 +334,7 @@ void DecodeColour(struct BitBuffer* bits, struct JpegInfo* info)
 	struct hTable* tabl = NULL;
 	int val,a;
 	struct sampleInfo* inf = &info->comp;
-	const unsigned char* tabif = info->table[inf->tableID];
+	const unsigned char* tabif = info->table;
 	assert(tabif);
 	if (tabif == 0)
 	{
@@ -409,7 +416,7 @@ void ScanDecode(struct BitBuffer* bits, struct JpegInfo* info)
 	unsigned char buffer2 = MoveByte(bits);
 
 
-	for (int b = 0; b < info->vert_mcu; b++)//loop though the height and width of the frame 
+	for (int b = 0; b < info->vert_mcu; b++)//loop though the height and width of the 
 	{
 		for (int c = 0; c < info->hors_mcu; c++)
 		{

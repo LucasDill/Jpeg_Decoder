@@ -129,6 +129,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitMapFunctions.h" />
+    <ClInclude Include="ReadFile.h" />
     <ClInclude Include="ReadFunctions.h" />
     <ClInclude Include="Structures.h" />
   </ItemGroup>
